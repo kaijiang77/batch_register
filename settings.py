@@ -3,11 +3,11 @@ from pathlib import Path
 class Settings():
     def __init__(self):
         #用户名称
-        self.username = "example_cn_"
+        self.username = "jk_cn_"
         #账户密码
-        self.password = "Example-123456789"
+        self.password = "Nevermore-17485000"
         #邮箱地址
-        self.email_address = "example"
+        self.email_address = "jiangkai@snapmail.cc"
 
 
         #网站注册地址及网站登录地址

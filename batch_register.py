@@ -85,8 +85,8 @@ class Batch_Register():
         driver.find_element(By.ID,"user_password_confirmation").send_keys(password)
 
         #输入姓、名
-        driver.find_element(By.ID,"user_first_name").send_keys('AAA')
-        driver.find_element(By.ID,"user_last_name").send_keys('BBB')
+        driver.find_element(By.ID,"user_first_name").send_keys('jiang')
+        driver.find_element(By.ID,"user_last_name").send_keys('kai')
 
         #输入电子邮箱
         driver.find_element(By.ID,"user_email_address").send_keys(email)
