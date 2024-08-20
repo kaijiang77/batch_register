@@ -3,11 +3,11 @@ from pathlib import Path
 class Settings():
     def __init__(self):
         #用户名称
-        self.username = "jk_cn_"
+        self.username = "example_"
         #账户密码
-        self.password = "Nevermore-17485000"
+        self.password = "AbcdefG-12345"
         #邮箱地址
-        self.email_address = "jiangkai@snapmail.cc"
+        self.email_address = "example"
 
 
         #网站注册地址及网站登录地址
@@ -19,6 +19,9 @@ class Settings():
 
         #更新序号区间
         self.update_index_range()
+
+        #等待响应的时间
+        self.wait_time = 15
     
     def update_index_range(self):
         #初始号码

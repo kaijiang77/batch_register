@@ -3,14 +3,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import json
 import requests              
 import time
-from settings import Settings
 import pandas as pd
 from pathlib import Path
 from tkinter import messagebox
+import traceback
+
+from settings import Settings
 
 
 class Batch_Register():
@@ -18,7 +21,7 @@ class Batch_Register():
     def __init__(self) -> None:
         """初始化各种设置"""
         self.st = Settings()
-    
+   
     def run(self):
         """开始程序的主循环"""
         #用以储存数据
@@ -30,11 +33,18 @@ class Batch_Register():
             print('序号超出上限')
             return
         
+        # 启动浏览器，如果未设置环境变量应设置路径
+        # chrome_options = Options()
+        # chrome_options.page_load_strategy = 'eager'
+        driver = webdriver.Chrome()
+        
+
         #利用try，expect方式，在程序中断时能够保持数据
         try:
             for i in range(self.st.start_num,self.st.start_num + num):
-                #启动浏览器，如果未设置环境变量应设置路径
-                driver = webdriver.Chrome()
+
+                #清除所有cookie
+                driver.execute_cdp_cmd('Network.clearBrowserCookies', {})
 
                 #获取带序号的用户名及邮箱地址
                 username,email = self._get_inf(self.st.username,self.st.email_address,i)
@@ -55,11 +65,12 @@ class Batch_Register():
                 df = self._save_inf(username,self.st.password,email,df)
 
                 #退出浏览器
-                driver.quit()
         except:
-            pass
+            print("出现如下异常： ")
+            traceback.print_exc()
         
         #将新得到的序号添加至序号区间的末尾
+        driver.quit()
         self._save_index_range(len(df))
 
         #当数据存在时保存账号数据
@@ -69,12 +80,11 @@ class Batch_Register():
     def _get_inf(self,username,email,index):
         username = username + str(index).zfill(5)
         e_mail = email + str(index) + '@snapmail.cc'
-        print(e_mail)
         return username,e_mail
 
     def _register(self,username,password,email,driver):
         """完成注册"""
-        wait = WebDriverWait(driver,15)
+        wait = WebDriverWait(driver,self.st.wait_time)
         
         #在注册界面完成各项操作，注意无法通过人机验证，需人工完成
         driver.get(self.st.register_address)
@@ -85,8 +95,8 @@ class Batch_Register():
         driver.find_element(By.ID,"user_password_confirmation").send_keys(password)
 
         #输入姓、名
-        driver.find_element(By.ID,"user_first_name").send_keys('jiang')
-        driver.find_element(By.ID,"user_last_name").send_keys('kai')
+        driver.find_element(By.ID,"user_first_name").send_keys('AAA')
+        driver.find_element(By.ID,"user_last_name").send_keys('BBB')
 
         #输入电子邮箱
         driver.find_element(By.ID,"user_email_address").send_keys(email)
@@ -112,7 +122,7 @@ class Batch_Register():
 
     def _check_register(self,driver):
         """查验登录页面是否存在人工检测"""
-        wait = WebDriverWait(driver,15)
+        wait = WebDriverWait(driver,self.st.wait_time)
 
         try:
             wait.until(EC.presence_of_element_located((By.ID,"user_password"))).send_keys(self.st.password)
@@ -152,15 +162,13 @@ class Batch_Register():
                 links = soup.find_all('a')
                 link = links[2].get('href')
                 driver.get(link)
-
                 break
-
             else:
                 print('再次获取邮件')
             
     def _web_confirm(self,driver,username,password):
         """在邮箱确认完成后，需要登录并完成确认"""
-        wait = WebDriverWait(driver,15)
+        wait = WebDriverWait(driver,self.st.wait_time)
 
         #返回登录界面
         driver.back()
@@ -183,6 +191,9 @@ class Batch_Register():
         
         element = driver.find_element(By.NAME,'authorize')
         ActionChains(driver).move_to_element(element).click().perform()
+
+        #清除所有cookie
+        driver.switch_to.window(driver.window_handles[-1])
           
     def _save_inf(self,username,password,email,df):
         """保留本次注册所使用的用户名、密码、电子邮箱"""
@@ -203,6 +214,7 @@ class Batch_Register():
 
         current_url = driver.current_url
 
+        #driver.execute_script('alert("请完成人工确认")')
         messagebox.showinfo('提示','请完成人工确认')
 
         while current_url == driver.current_url:
